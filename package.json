@@ -1,0 +1,11 @@
+{
+  "name": "music-submission-management-system",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @msms/web-admin",
+    "build:web": "npm run build --workspace @msms/web-admin",
+    "start:mobile": "npm start --workspace @msms/mobile"
+  }
+}

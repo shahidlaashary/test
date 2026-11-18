@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    // Production rules must be extended with trusted Admin custom claims and server-only writes.
+    match /users/{uid}/{document=**} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+    match /submissions/{submissionId} {
+      allow read: if signedIn() && resource.data.ownerId == request.auth.uid;
+      allow write: if false;
+    }
+  }
+}

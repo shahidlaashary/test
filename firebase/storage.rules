@@ -1,0 +1,10 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /users/{uid}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      // Upload validation and admin review writes must be implemented with trusted backend logic.
+      allow write: if false;
+    }
+  }
+}
