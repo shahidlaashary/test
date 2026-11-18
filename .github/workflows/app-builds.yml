@@ -39,9 +39,20 @@ jobs:
           grep -RIl '1\.9\.24' . --exclude-dir=.gradle --exclude-dir=build | xargs -r sed -i 's/1\.9\.24/1.9.25/g'
           echo 'Kotlin version declarations after alignment:'
           grep -RIn '1\.9\.25' . --exclude-dir=.gradle --exclude-dir=build || true
-      - name: Build debug APK
+      - name: Build debug APK (retry transient Maven rate limits)
         working-directory: apps/mobile/android
-        run: ./gradlew assembleDebug
+        run: |
+          for attempt in 1 2 3 4; do
+            echo "APK build attempt ${attempt}/4"
+            if ./gradlew assembleDebug; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 4 ]; then
+              echo "Gradle build failed; waiting 30 seconds before retry..."
+              sleep 30
+            fi
+          done
+          exit 1
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
