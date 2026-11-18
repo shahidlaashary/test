@@ -34,8 +34,11 @@ jobs:
       - name: Align Kotlin with Compose compiler
         working-directory: apps/mobile/android
         run: |
-          sed -i 's/1\.9\.24/1.9.25/g' build.gradle
-          grep -n '1.9.25' build.gradle
+          echo 'Kotlin version declarations before alignment:'
+          grep -RIn '1\.9\.24' . --exclude-dir=.gradle --exclude-dir=build || true
+          grep -RIl '1\.9\.24' . --exclude-dir=.gradle --exclude-dir=build | xargs -r sed -i 's/1\.9\.24/1.9.25/g'
+          echo 'Kotlin version declarations after alignment:'
+          grep -RIn '1\.9\.25' . --exclude-dir=.gradle --exclude-dir=build || true
       - name: Build debug APK
         working-directory: apps/mobile/android
         run: ./gradlew assembleDebug
