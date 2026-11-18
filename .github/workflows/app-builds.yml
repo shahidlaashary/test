@@ -33,17 +33,17 @@ jobs:
         run: npx expo prebuild --platform android --non-interactive
       - name: Align Kotlin with Compose compiler
         run: |
-          echo 'Kotlin version declarations before alignment:'
-          grep -RIn '1\\.9\\.24' apps/mobile/android node_modules --exclude-dir=.gradle --exclude-dir=build --exclude-dir=.git || true
-          grep -RIl '1\\.9\\.24' apps/mobile/android node_modules --exclude-dir=.gradle --exclude-dir=build --exclude-dir=.git | xargs -r sed -i 's/1\\.9\\.24/1.9.25/g'
-          echo 'Kotlin version declarations after alignment:'
-          grep -RIn '1\\.9\\.25' apps/mobile/android node_modules/@react-native node_modules/expo-modules-core --exclude-dir=.gradle --exclude-dir=build --exclude-dir=.git || true
+          echo 'Setting Android Kotlin version explicitly to 1.9.25'
+          echo "android.kotlinVersion=1.9.25" >> apps/mobile/android/gradle.properties
+          echo 'Checking generated Android Gradle configuration:'
+          grep -RInF '1.9.24' apps/mobile/android --exclude-dir=.gradle --exclude-dir=build || true
+          grep -RInF '1.9.25' apps/mobile/android --exclude-dir=.gradle --exclude-dir=build || true
       - name: Build debug APK (retry transient Maven rate limits)
         working-directory: apps/mobile/android
         run: |
           for attempt in 1 2 3 4; do
             echo "APK build attempt ${attempt}/4"
-            if ./gradlew assembleDebug; then
+            if ./gradlew -Pandroid.kotlinVersion=1.9.25 assembleDebug; then
               exit 0
             fi
             if [ "$attempt" -lt 4 ]; then
