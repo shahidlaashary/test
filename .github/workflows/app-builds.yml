@@ -33,11 +33,14 @@ jobs:
         run: npx expo prebuild --platform android --non-interactive
       - name: Align Kotlin with Compose compiler
         run: |
-          echo 'Setting Android Kotlin version explicitly to 1.9.25'
+          echo 'Pinning Kotlin plugin declarations in generated Gradle files to 1.9.25'
           echo "android.kotlinVersion=1.9.25" >> apps/mobile/android/gradle.properties
-          echo 'Checking generated Android Gradle configuration:'
-          grep -RInF '1.9.24' apps/mobile/android --exclude-dir=.gradle --exclude-dir=build || true
-          grep -RInF '1.9.25' apps/mobile/android --exclude-dir=.gradle --exclude-dir=build || true
+          find apps/mobile/android -type f \( -name '*.gradle' -o -name '*.gradle.kts' \) -not -path '*/.gradle/*' -not -path '*/build/*' -print0 | xargs -0 -r sed -i 's/1\.9\.24/1.9.25/g'
+          echo 'Verifying generated Gradle configuration:'
+          grep -RInF '1.9.24' apps/mobile/android --include='*.gradle' --include='*.gradle.kts' --exclude-dir=.gradle --exclude-dir=build && exit 1 || true
+          grep -RInF '1.9.25' apps/mobile/android --include='*.gradle' --include='*.gradle.kts' --exclude-dir=.gradle --exclude-dir=build || true
+          echo 'Root Android Gradle build file:'
+          sed -n '1,120p' apps/mobile/android/build.gradle
       - name: Build debug APK (retry transient Maven rate limits)
         working-directory: apps/mobile/android
         run: |
