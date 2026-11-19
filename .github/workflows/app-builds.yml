@@ -40,12 +40,12 @@ jobs:
           grep -n 'android.kotlinVersion' android/gradle.properties
           grep -n -A8 'composeOptions' ../../node_modules/expo-modules-core/android/build.gradle
           grep -q '"1.9.24": "1.5.14"' ../../node_modules/expo-modules-core/android/build.gradle
-      - name: Build debug APK (retry transient Maven rate limits)
+      - name: Build standalone release APK with embedded JavaScript bundle (retry transient Maven rate limits)
         working-directory: apps/mobile/android
         run: |
           for attempt in 1 2 3 4; do
             echo "APK build attempt ${attempt}/4"
-            if ./gradlew assembleDebug; then
+            if ./gradlew assembleRelease; then
               exit 0
             fi
             if [ "$attempt" -lt 4 ]; then
@@ -54,9 +54,9 @@ jobs:
             fi
           done
           exit 1
-      - name: Upload installable APK
+      - name: Upload standalone release APK
         uses: actions/upload-artifact@v4
         with:
-          name: sounddesk-debug-apk
-          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          name: sounddesk-release-apk
+          path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
