@@ -31,12 +31,15 @@ jobs:
       - name: Generate Android native project
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --non-interactive
-      - name: Verify Expo SDK Kotlin and Compose compatibility
+      - name: Align Kotlin and Compose compiler versions
         working-directory: apps/mobile
         run: |
-          echo "Using Expo SDK 52 default Kotlin 1.9.24 and Compose Compiler 1.5.14"
+          echo "android.kotlinVersion=1.9.24" >> android/gradle.properties
+          echo "Configured Kotlin 1.9.24 for Expo Modules Core Compose mapping"
           grep -n 'kotlinVersion' android/build.gradle
-          grep -n -A8 'composeOptions' ../..//node_modules/expo-modules-core/android/build.gradle || true
+          grep -n 'android.kotlinVersion' android/gradle.properties
+          grep -n -A8 'composeOptions' ../../node_modules/expo-modules-core/android/build.gradle
+          grep -q '"1.9.24": "1.5.14"' ../../node_modules/expo-modules-core/android/build.gradle
       - name: Build debug APK (retry transient Maven rate limits)
         working-directory: apps/mobile/android
         run: |
