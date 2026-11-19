@@ -36,6 +36,25 @@ jobs:
           echo 'Pinning Kotlin plugin declarations in generated Gradle files to 1.9.25'
           echo "android.kotlinVersion=1.9.25" >> apps/mobile/android/gradle.properties
           find apps/mobile/android -type f \( -name '*.gradle' -o -name '*.gradle.kts' \) -not -path '*/.gradle/*' -not -path '*/build/*' -print0 | xargs -0 -r sed -i 's/1\.9\.24/1.9.25/g'
+          python3 - <<'PY'
+          from pathlib import Path
+          settings = Path("apps/mobile/android/settings.gradle")
+          content = settings.read_text()
+          marker = "pluginManagement {"
+          rule = """pluginManagement {
+              resolutionStrategy {
+                  eachPlugin {
+                      if (requested.id.id.startsWith("org.jetbrains.kotlin")) {
+                          useVersion("1.9.25")
+                      }
+                  }
+              }"""
+          if marker not in content:
+              raise SystemExit("Could not find pluginManagement block in settings.gradle")
+          content = content.replace(marker, rule, 1)
+          settings.write_text(content)
+          print("Forced Kotlin Gradle plugins to 1.9.25 in settings.gradle")
+          PY
           echo 'Verifying generated Gradle configuration:'
           grep -RInF '1.9.24' apps/mobile/android --include='*.gradle' --include='*.gradle.kts' --exclude-dir=.gradle --exclude-dir=build && exit 1 || true
           grep -RInF '1.9.25' apps/mobile/android --include='*.gradle' --include='*.gradle.kts' --exclude-dir=.gradle --exclude-dir=build || true
